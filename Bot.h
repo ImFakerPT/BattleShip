@@ -2,11 +2,11 @@
 #include "Board.h" 
 #include "Navalpoint.h"
 #include "Boat.h"
+#include "Player.h"
 using namespace std;
 class Bot
 {
 	private:
-		string name;
 		Board T;
 		Boat MB[10];
 		Navalpoint shots[100];
@@ -15,9 +15,10 @@ class Bot
 		virtual ~Bot();
 		Board* GetBoard() { return &T; }
 		Boat* Getboat() { return MB; }
-		string GetName() { return name; }
+		Board* getBoard() { return &T; }
 		void Save(std::string file, Board* oponent);
 		void Place(Board* T2);
-		void Shoot(Board* Oponent);
+		void Shoot(Board* Oponent, Player P);
 		void WinningCondition(std::string file, Board* oponent);
+		void Stats();
 };
