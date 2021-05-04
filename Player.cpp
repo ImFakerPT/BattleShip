@@ -1,5 +1,6 @@
 #include "player.h"
 #include <iostream>
+#include "Menu.h"
 using namespace std;
 Player::Player()
 {
@@ -10,7 +11,7 @@ Player::~Player()
 {
 }
 
-void Player::Place(Board* T2)
+void Player::Place(Board* T2, Bot B)
 {
 	int i = 0;
 	Navalpoint cel, celRight, celLeft, celTop, celTopRight, celTopLeft, celUnder, celUnderRight, celUnderLeft;
@@ -31,13 +32,15 @@ void Player::Place(Board* T2)
 		celUnderLeft = GetBoard()->GetCellUnderLeft(MB[i].GetPosition());
 		celUnderRight = GetBoard()->GetCellUnderRight(MB[i].GetPosition());
 		//                                                                                ***
-		//Verifica a celula do barco onde o jogador pretende colocar e as celulas · volta *** desta maneira de forma a verificar se tem um barco j· colocado nesse quadrado 3x3,se tiver, pede para colocar uma nova posiÁ„o
+		//Verifica a celula do barco onde o jogador pretende colocar e as celulas √° volta *** desta maneira de forma a verificar se tem um barco j√° colocado nesse quadrado 3x3,se tiver, pede para colocar uma nova posi√ß√£o
 		//                                                                                ***
 		while (cel.GetC() == 'O' || celLeft.GetC() == 'O' || celRight.GetC() == 'O' || celTop.GetC() == 'O' || celTopLeft.GetC() == 'O' || celTopRight.GetC() == 'O' || celUnder.GetC() == 'O' || celUnderLeft.GetC() == 'O' || celUnderRight.GetC() == 'O')
 		{
 			ReadShots("BotPositions.txt",T2);
 			system("cls");
-			GetBoard()->Draw2(5, 4, T2);
+			GetBoard()->Draw2(40, 5, T2);
+			Stats();
+			B.Stats();
 			MB[i].SetPosition(MB->Boatcreate(i + 1));
 			celTop = GetBoard()->GetCellTop(MB[i].GetPosition());
 			celTopLeft = GetBoard()->GetCellTopLeft(MB[i].GetPosition());
@@ -53,11 +56,14 @@ void Player::Place(Board* T2)
 		ReadShots("BotPositions.txt", T2);
 		GetBoard()->SetCell(MB[i].GetPosition());
 		system("cls");
-		GetBoard()->Draw2(5, 4, T2);
+		GetBoard()->Draw2(40, 5, T2);
+		Stats();
+		B.Stats();
+		Save("PlayerPositions.txt", getBoard());
 	}
 }
 
-void Player::Shoot(Board* oponent)
+void Player::Shoot(Board* oponent, Bot B)
 {
 	int x = 0, i = 0;
 	char y;
@@ -65,20 +71,22 @@ void Player::Shoot(Board* oponent)
 	ifstream is;
 
 	//Ciclo que permite cada jogador dar tres tiros no tabuleiro do adversario.
-	//Tem a funcionalidade de verificar se o jogador j· atirou na mesma casa e permite novamente dar o tiro
+	//Tem a funcionalidade de verificar se o jogador j√° atirou na mesma casa e permite novamente dar o tiro
 
 	for (i = 0; i < 3; i++)
 	{
-		//Guarda as posiÁıes do barcos do Bot sobrepostas pelos tiros do jogador num ficheiro com todas as coordenadas
+		//Guarda as posi√ß√µes do barcos do Bot sobrepostas pelos tiros do jogador num ficheiro com todas as coordenadas
 		//caso o jogador atire num barco o allcords.txt contem o barco atingido
 		Read("BotPositions.txt", oponent);
-		//O metodo read foi implementado aqui sem o aviso de erro , pois no 1 ciclo o ficheiro n„o existe e ia acionar o exit 0
+		//O metodo read foi implementado aqui sem o aviso de erro , pois no 1 ciclo o ficheiro n√£o existe e ia acionar o exit 0
 		is.open("shots.txt"); 
 		oponent->Read(is);
 		is.close();
 		Save("allcords.txt", oponent);
-		cout << "Indique onde pretende atirar" << endl;
+		cout << "Where do you want to shot?" << endl;
 		cin >> x >> y;
+		Stats();
+		B.Stats();
 		shots[i].SetX(x);
 		shots[i].SetY(y);
 	    shots[i] = oponent->GetCell(shots[i]);
@@ -89,7 +97,7 @@ void Player::Shoot(Board* oponent)
 			oponent->Read(is);
 			is.close();
 			Save("allcords.txt", oponent);
-			cout << "Zona ja atingida selecione outro alvo" << endl;
+			cout << "You already shot here, select another target" << endl;
 			cin >> x >> y;
 			shots[i].SetX(x);
 			shots[i].SetY(y);
@@ -98,7 +106,9 @@ void Player::Shoot(Board* oponent)
 			std::system("cls");
 			ReadShots("allcords.txt", oponent);
 			Save("shots.txt", oponent);
-			GetBoard()->Draw2(5, 4, (oponent));
+			GetBoard()->Draw2(40, 5, (oponent));
+			Stats();
+			B.Stats();
 		}
 		if (shots[i].GetC() == '.')
 		{
@@ -107,7 +117,9 @@ void Player::Shoot(Board* oponent)
 			ReadShots("allcords.txt", oponent);
 			Save("shots.txt", oponent);
 			std::system("cls");
-			GetBoard()->Draw2(5, 4, (oponent));
+			GetBoard()->Draw2(40, 5, (oponent));
+			Stats();
+			B.Stats();
 		}
 		if (shots[i].GetC() == 'O')
 		{
@@ -117,7 +129,9 @@ void Player::Shoot(Board* oponent)
 			ReadShots("allcords.txt", oponent);
 			Save("shots.txt", oponent);
 			std::system("cls");
-			GetBoard()->Draw2(5, 4, oponent);
+			GetBoard()->Draw2(40, 5, oponent);
+			Stats();
+			B.Stats();
 			WinningCondition("allcords.txt",oponent);
 		}
 	}
@@ -131,7 +145,7 @@ void Player::Save(string file, Board* oponent)
 	os.open(file);
 	if (!os) 
 	{
-		cerr << "ERRO: n„o È possÌvel abrir o ficheiro " << file << '\n';
+		cerr << "ERROR: problem in opening the file " << file << '\n';
 		exit(0);
 	}
 	oponent->Save(os);
@@ -146,14 +160,14 @@ void Player::Read(string file, Board* oponent)
 	is.open(file);
 	if (!is)
 	{
-		cerr << "ERRO: n„o È possÌvel abrir o ficheiro " << file << '\n';
+		cerr << "ERROR: problem in opening the file " << file << '\n';
 		exit(0);
 	}
 	oponent->Read(is);
 	is.close();
 }
 
-//Filtra os barcos do advers·rio de forma a o advers·rio n„o os poder visualizar e carrega as restantes coordenadas no tabuleiro
+//Filtra os barcos do advers√°rio de forma a o advers√°rio n√£o os poder visualizar e carrega as restantes coordenadas no tabuleiro
 void Player::ReadShots(string file, Board* oponent)
 {
 	ifstream is;
@@ -161,7 +175,7 @@ void Player::ReadShots(string file, Board* oponent)
 	is.open(file);
 	if (!is)
 	{
-		cerr << "ERRO: n„o È possÌvel abrir o ficheiro " << file << '\n';
+		cerr << "ERROR: problem in opening the file " << file << '\n';
 		exit(0);
 	}
 	oponent->ReadShots(is);
@@ -175,19 +189,47 @@ void Player::WinningCondition(string file, Board* oponent)
 	is.open(file);
 	if (!is) 
 	{
-		cerr << "ERRO: n„o È possÌvel abrir o ficheiro " << file << '\n';
+		cerr << "ERROR: problem in opening the file " << file << '\n';
 		exit(0);
 	}
 	counter = oponent->ReadBoatsDestroyed(is);
 	if (counter == 4) 
 	{
 
-		cout << "The Player " << GetName() <<" Won"<<endl;
+		cout <<  GetName() <<" Won"<<endl;
 		system("pause");
 		exit(0);
 	}
 	is.close();
 }
 
+void Player::Stats()
+{
+	Menu M;
+	M.gotoxy(5, 6); cout << char(218);  //canto superior esquerdo
+	M.gotoxy(5, 18); cout << char(192);  //canto inferior esquerdo
+	M.gotoxy(35, 6); cout << char(191); //canto superior direito
+	M.gotoxy(35, 18); cout << char(217); //canto inferior direito
+
+	for (int i = 1; i <= 29; i++)
+	{
+		M.gotoxy(5 + i, 6); cout << char(196); //linha de cima
+		M.gotoxy(5 + i, 18); cout << char(196); // linha de baixo
+	}
+
+	for (int j = 1; j <= 11; j++)
+	{
+		M.gotoxy(5, 6 + j); cout << char(179); //linha da esquerda
+		M.gotoxy(35, 6 + j); cout << char(179); //linha da direita
+	}
+
+	M.gotoxy(8, 7); cout << GetName();
+	M.gotoxy(8, 10); cout << "Shot : " << "/3";
+	M.gotoxy(8, 12); cout << "Submarine : " << "/4";
+	M.gotoxy(8, 14); cout << "Hits: " << "/4";
+	M.gotoxy(8, 16); cout << "Game Turn:" << "/100";
+
+	M.gotoxy(0, 45);
+}
 
 
