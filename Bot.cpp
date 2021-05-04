@@ -1,4 +1,5 @@
 #include "Bot.h"
+#include "Menu.h"
 #include <iostream>
 #include <ctime>
 #include<windows.h>
@@ -16,7 +17,7 @@ void Bot::Place(Board* oponent)
 	int i = 0;
 	Navalpoint cel, celRight, celLeft, celTop, celTopRight, celTopLeft, celUnder, celUnderRight, celUnderLeft;
 
-	cout << "Computer placing boats" << endl;
+	cout  << "Computer placing boats" << endl;
 	
 	for (i = 0; i < 4; i++)
 	{
@@ -46,18 +47,22 @@ void Bot::Place(Board* oponent)
 		}
 		//---------------------------------------------------------------
 		GetBoard()->SetCell(MB[i].GetPosition());
+		Save("BotPositions.txt", getBoard() );
 	}
 	
 }
 
-void Bot::Shoot(Board* oponent)
+void Bot::Shoot(Board* oponent, Player P)
 {
 	int x = 0, y = 0, i = 0;
 
 	srand(time(0));
-	
+
+	Stats();
+	P.Stats();
 	cout << "Computer is shooting" <<endl;
 	Sleep(500);
+	//Stats();
 	for (i = 0; i < 3; i++)
 	{
 		x = rand() % 10 + 1;
@@ -75,7 +80,9 @@ void Bot::Shoot(Board* oponent)
 			shots[i].GetC();
 			Sleep(500);
 			system("cls");
-			oponent->Draw2(5, 4, GetBoard());
+			oponent->Draw2(40, 5, GetBoard());
+			Stats();
+			P.Stats();
 		}
 		if (shots[i].GetC() == '.')
 		{
@@ -83,9 +90,12 @@ void Bot::Shoot(Board* oponent)
 			Sleep(500);
 			shots[i].SetC('A');
 			oponent->SetCell(shots[i]);
+			Save("allcordsbot.txt", oponent);
 			Sleep(500);
 			system("cls");
-			oponent->Draw2(5, 4, GetBoard());
+			oponent->Draw2(40, 5, GetBoard());
+			Stats();
+			P.Stats();
 		}
 		if (shots[i].GetC() == 'O')
 		{
@@ -96,7 +106,9 @@ void Bot::Shoot(Board* oponent)
 			Save("allcordsbot.txt", oponent);
 			Sleep(500);
 			system("cls");
-			oponent->Draw2(5, 4, GetBoard());
+			oponent->Draw2(40, 5, GetBoard());
+			Stats();
+			P.Stats();
 			WinningCondition("allcordsbot.txt", oponent);
 		}
 	}
@@ -109,7 +121,7 @@ void Bot::Save(string file, Board* oponent)
 	os.open(file);
 	if (!os)
 	{
-		cerr << "ERRO: não é possível abrir o ficheiro " << file << '\n';
+		cerr << "ERROR: problem in opening the file " << file << '\n';
 		exit(0);
 	}
 	oponent->Save(os);
@@ -124,7 +136,7 @@ void Bot::WinningCondition(string file, Board* oponent)
 	is.open(file);
 	if (!is)
 	{
-		cerr << "ERRO: não é possível abrir o ficheiro " << file << '\n';
+		cerr << "ERROR: problem in opening the file " << file << '\n';
 		exit(0);
 	}
 	counter = oponent->ReadBoatsDestroyed(is);
@@ -136,4 +148,33 @@ void Bot::WinningCondition(string file, Board* oponent)
 		exit(0);
 	}
 	is.close();
+}
+
+void Bot::Stats()
+{
+	Menu M;
+	M.gotoxy(172, 6); cout << char(218);  //canto superior esquerdo
+	M.gotoxy(172, 18); cout << char(192);  //canto inferior esquerdo
+	M.gotoxy(202, 6); cout << char(191); //canto superior direito
+	M.gotoxy(202, 18); cout << char(217); //canto inferior direito
+
+	for (int i = 1; i <= 29; i++)
+	{
+		M.gotoxy(172 + i, 6); cout << char(196); //linha de cima
+		M.gotoxy(172 + i, 18); cout << char(196); // linha de baixo
+	}
+
+	for (int j = 1; j <= 11; j++)
+	{
+		M.gotoxy(172, 6 + j); cout << char(179); //linha da esquerda
+		M.gotoxy(202, 6 + j); cout << char(179); //linha da direita
+	}
+
+	M.gotoxy(175, 7); cout << "Bot";
+	M.gotoxy(175, 10); cout << "Shot : " << "/3";
+	M.gotoxy(175, 12); cout << "Submarine : " << "/4";
+	M.gotoxy(175, 14); cout << "Hits: " << "/4";
+	M.gotoxy(175, 16); cout << "Game Turn:" << "/100";
+
+	M.gotoxy(0, 45);
 }
