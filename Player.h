@@ -2,6 +2,7 @@
 #include "Board.h" 
 #include "Navalpoint.h"
 #include "Boat.h"
+#include "Bot.h"
 using namespace std;
 class Player
 {
@@ -17,10 +18,12 @@ public:
 	string SetName(string _name) { name = _name; }
 	string GetName() { return name; }
 	Boat* Getboat() { return MB; }
-	void Place(Board *T2);
-	void Shoot(Board* Oponent);
+	Board* getBoard() { return &T; }
+	void Place(Board *T2, Bot B);
+	void Shoot(Board* Oponent, Bot B);
 	void Save(std::string file, Board* oponent);
 	void ReadShots(std::string file, Board* oponent);
 	void Read(std::string file, Board* oponent);
 	void WinningCondition(std::string file, Board* oponent);
+	void Stats();
 };
